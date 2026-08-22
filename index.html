@@ -670,10 +670,6 @@
           <p class="section-label" style="margin-bottom:12px; font-weight:700;">Register Interviewer</p>
           <div style="display:flex; flex-direction:column; gap:12px;">
             <div class="form-group">
-              <label for="reg-no-input" style="font-size:10px;">Register Number / ID *</label>
-              <input type="text" id="reg-no-input" placeholder="e.g. TNV102" style="padding: 8px 12px; font-size:13px;" />
-            </div>
-            <div class="form-group">
               <label for="reg-name-input" style="font-size:10px;">Full Name *</label>
               <input type="text" id="reg-name-input" placeholder="Full name" style="padding: 8px 12px; font-size:13px;" />
             </div>
@@ -697,10 +693,10 @@
             <table class="admin-table">
               <thead>
                 <tr>
-                  <th>Reg No</th>
                   <th>Name</th>
                   <th>Email</th>
                   <th>Mobile</th>
+                  <th>Status</th>
                   <th>Action</th>
                 </tr>
               </thead>
@@ -869,12 +865,12 @@
       <div style="text-align:center;margin-bottom:24px;">
         <div style="width:60px;height:60px;background:var(--green-bg);border:2px solid var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px;">🎤</div>
         <h2 class="card-title" style="font-size:22px;">Interviewer <span>Login</span></h2>
-        <p class="card-subtitle" style="margin-bottom:0;">Please enter your registered ID / Register Number to start.</p>
+        <p class="card-subtitle" style="margin-bottom:0;">Please enter your registered Email ID or Mobile Number to start.</p>
       </div>
       <div class="form-group" style="margin-bottom:14px;">
-        <label for="iv-reg-no">Register Number / ID *</label>
-        <input type="text" id="iv-reg-no" placeholder="e.g. TNV101" />
-        <span class="error-msg" id="err-iv-reg-no">Register Number not found. Please contact Admin.</span>
+        <label for="iv-login-input">Email ID or Mobile Number *</label>
+        <input type="text" id="iv-login-input" placeholder="e.g. ravi@tnv.org or 9876543210" />
+        <span class="error-msg" id="err-iv-login-input">Email or Mobile Number not found, or access revoked.</span>
       </div>
       <div class="btn-row" style="flex-direction:column;gap:10px;">
         <button class="btn btn-primary btn-full" onclick="submitInterviewerLogin()">Login &amp; Begin →</button>
@@ -1360,37 +1356,37 @@ function validatePhone(p)  { return /^[6-9]\d{9}$/.test(p); }
 
 // ─── SCREEN 1: INTERVIEWER LOGIN (VIA REGISTER NUMBER — SUPABASE) ───
 async function submitInterviewerLogin() {
-  const regNo = document.getElementById('iv-reg-no').value.trim().toUpperCase();
-  clearErrors(['err-iv-reg-no']);
-  if (!regNo) {
-    showErr('err-iv-reg-no', true);
-    document.getElementById('err-iv-reg-no').textContent = 'Please enter your Register Number';
+  const loginVal = document.getElementById('iv-login-input').value.trim();
+  clearErrors(['err-iv-login-input']);
+  if (!loginVal) {
+    showErr('err-iv-login-input', true);
+    document.getElementById('err-iv-login-input').textContent = 'Please enter your Email ID or Mobile Number';
     return;
   }
 
   showToast('🔄 Verifying…');
 
-  const { data: iv, error } = await db
+  const { data, error } = await db
     .from('interviewers')
     .select('*')
-    .eq('reg_no', regNo)
-    .eq('is_active', true)
-    .single();
+    .or(`email.eq.${loginVal},phone.eq.${loginVal}`)
+    .eq('is_active', true);
 
-  if (error || !iv) {
-    showErr('err-iv-reg-no', true);
-    document.getElementById('err-iv-reg-no').textContent = 'Register Number not found or access revoked. Contact Admin.';
+  if (error || !data || data.length === 0) {
+    showErr('err-iv-login-input', true);
+    document.getElementById('err-iv-login-input').textContent = 'Email or Mobile Number not found, or access revoked. Contact Admin.';
     return;
   }
 
+  const iv = data[0];
   state.interviewer = { id: iv.id, name: iv.full_name, email: iv.email||'', phone: iv.phone||'', regNo: iv.reg_no };
 
   document.getElementById('nav-right').innerHTML = `
-    <span class="nav-badge green"><span class="session-dot"></span>${esc(iv.full_name)} (${esc(iv.reg_no)})</span>
+    <span class="nav-badge green"><span class="session-dot"></span>${esc(iv.full_name)}</span>
     <button class="btn-sm-logout" onclick="logout()">End Session</button>`;
 
   document.getElementById('interviewer-info-bar').innerHTML = `
-    <div class="info-item"><div class="ilabel">Interviewer</div><div class="ival">${esc(iv.full_name)} (${esc(iv.reg_no)})</div></div>
+    <div class="info-item"><div class="ilabel">Interviewer</div><div class="ival">${esc(iv.full_name)}</div></div>
     <div class="info-item"><div class="ilabel">Email</div><div class="ival">${esc(iv.email||'—')}</div></div>
     <div class="info-item"><div class="ilabel">Mobile</div><div class="ival">${esc(iv.phone||'—')}</div></div>
     <div class="info-item"><div class="ilabel">Done Today</div><div class="ival" id="done-count">${state.sessionRecords.length}</div></div>`;
@@ -1401,27 +1397,36 @@ async function submitInterviewerLogin() {
 
 // ─── ADMIN REGISTER NEW INTERVIEWERS (SUPABASE) ───
 async function addInterviewerByAdmin() {
-  const regNo = document.getElementById('reg-no-input').value.trim().toUpperCase();
   const name  = document.getElementById('reg-name-input').value.trim();
   const email = document.getElementById('reg-email-input').value.trim();
   const phone = document.getElementById('reg-phone-input').value.trim();
 
-  if (!regNo || !name) {
-    showToast('⚠ Register No and Name are required.', '#dc2626');
+  if (!name || !email || !phone) {
+    showToast('⚠ All fields (Name, Email, Mobile) are required.', '#dc2626');
     return;
   }
+  if (!validateEmail(email)) {
+    showToast('⚠ Please enter a valid email address.', '#dc2626');
+    return;
+  }
+  if (!validatePhone(phone)) {
+    showToast('⚠ Please enter a valid 10-digit mobile number.', '#dc2626');
+    return;
+  }
+
+  // Under the hood, use mobile number as reg_no to satisfy DB uniqueness
+  const regNo = phone;
 
   try {
     await addInterviewerToSupabase(regNo, name, email, phone);
     showToast('✅ Interviewer registered successfully.');
-    document.getElementById('reg-no-input').value = '';
     document.getElementById('reg-name-input').value = '';
     document.getElementById('reg-email-input').value = '';
     document.getElementById('reg-phone-input').value = '';
     renderRegisteredInterviewers();
     renderInterviewersTable();
   } catch(e) {
-    if (e.code === '23505') showToast('⚠ Register Number already exists.', '#dc2626');
+    if (e.code === '23505') showToast('⚠ Email or Mobile number already exists.', '#dc2626');
     else { showToast('❌ Error saving: ' + (e.message||e), '#dc2626'); console.error(e); }
   }
 }
@@ -1460,7 +1465,6 @@ async function renderRegisteredInterviewers() {
   const tbody = document.getElementById('registered-iv-table-body');
   tbody.innerHTML = list.map(iv => `
     <tr>
-      <td style="font-weight:700; color:var(--green);">${esc(iv.reg_no)}</td>
       <td style="font-weight:600;">${esc(iv.full_name)}</td>
       <td>${esc(iv.email||'—')}</td>
       <td>${esc(iv.phone||'—')}</td>
