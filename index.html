@@ -1212,6 +1212,7 @@ function submitAdminLogin() {
 
 // ─── ADMIN DASHBOARD ───
 let currentAdminTab = 'all';
+let adminRecords = []; // global cache so search works without re-fetching
 
 function adminTab(tab) {
   currentAdminTab = tab;
@@ -1231,9 +1232,10 @@ function adminTab(tab) {
 }
 
 async function refreshAdmin() {
-  const records = await loadAllRecords();
-  renderAdminStats(records);
-  renderAdminTable(records);
+  showToast('⏳ Loading records…');
+  adminRecords = await loadAllRecords();
+  renderAdminStats(adminRecords);
+  renderAdminTable(adminRecords);
 }
 
 function renderAdminStats(records) {
@@ -1250,8 +1252,10 @@ function renderAdminStats(records) {
 }
 
 function renderAdminTable(records) {
+  // Use passed records or fall back to global cache (called by search bar with no args)
+  const src = records !== undefined ? records : adminRecords;
   const query = (document.getElementById('admin-search')?.value || '').toLowerCase();
-  const filtered = (records || []).filter(r => {
+  const filtered = src.filter(r => {
     if (!query) return true;
     return (r['Candidate Name'] + r['District'] + r['Assembly Constituency'] + r['Auto-Suggested Role'] + r['Interviewer Name'])
       .toLowerCase().includes(query);
