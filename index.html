@@ -530,19 +530,160 @@
     }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
 
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 640px) {
-      .card { padding: 22px 18px; }
-      .form-grid { grid-template-columns: 1fr; }
+    /* ===== RESPONSIVE — MOBILE FIRST ===== */
+
+    /* ── Tablet & below (≤768px) ── */
+    @media (max-width: 768px) {
+
+      /* Layout */
+      .app-wrapper { padding: 0 10px 60px; }
+      .screen { max-width: 100%; }
+      .screen.wide { max-width: 100%; }
+
+      /* Nav */
+      .topnav-inner { padding: 10px 14px; gap: 8px; }
+      .logo-img { width: 40px; height: 40px; }
+      .logo-text .org { font-size: 9px; letter-spacing: 1px; }
+      .logo-text .title { font-size: 13px; }
+      .nav-badge { padding: 4px 10px; font-size: 11px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .btn-sm-logout { padding: 5px 10px; font-size: 11px; }
+
+      /* Cards */
+      .card { padding: 20px 16px; border-radius: 12px; }
+      .card-sm { padding: 16px; }
+      .card-title { font-size: 20px; }
+      .card-subtitle { font-size: 13px; margin-bottom: 20px; }
+
+      /* Forms */
+      .form-grid { grid-template-columns: 1fr; gap: 12px; }
       .form-grid .full { grid-column: 1; }
-      .role-cards { grid-template-columns: 1fr; gap: 14px; }
+      .form-group input,
+      .form-group select,
+      .form-group textarea { padding: 12px 12px; font-size: 16px; /* prevent iOS zoom */ }
+
+      /* Buttons */
+      .btn { padding: 13px 20px; font-size: 13px; }
+      .btn-row { gap: 10px; margin-top: 18px; }
+      .btn-row .btn { min-width: 0; }
+
+      /* Role selection */
+      .role-cards { grid-template-columns: 1fr; gap: 14px; margin: 20px 0; }
+      .role-card { padding: 22px 18px; }
+      .role-icon { width: 56px; height: 56px; font-size: 24px; }
+      .role-name { font-size: 16px; }
+
+      /* Score selector — make tap targets bigger */
+      .score-options { gap: 10px; justify-content: center; }
+      .score-option label { width: 88px; height: 80px; border-radius: 10px; }
+      .score-option label .score-val { font-size: 26px; }
+      .score-option label .score-desc { font-size: 9px; }
+
+      /* Score breakdown grid — 8 cols on tablet */
+      .score-breakdown { grid-template-columns: repeat(8, 1fr); gap: 6px; }
+      .score-cell { padding: 6px 4px; border-radius: 6px; }
+      .score-cell .qlabel { font-size: 9px; }
+      .score-cell .qval  { font-size: 14px; }
+
+      /* Results */
+      .result-hero { padding: 20px 0 16px; }
+      .result-ring-wrap { width: 110px; height: 110px; }
+      .result-ring-svg { width: 110px; height: 110px; }
+      .result-ring-inner .big { font-size: 24px; }
+      .result-name { font-size: 17px; }
+
+      /* Admin */
+      .admin-stats { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .stat-card { padding: 14px 16px; }
+      .stat-card .stat-val { font-size: 24px; }
+      .admin-toolbar { gap: 8px; }
+      .admin-toolbar input { min-width: 0; }
+
+      /* Admin tabs — scrollable horizontal */
+      .admin-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; }
+      .admin-tab { padding: 10px 16px; font-size: 12px; }
+
+      /* Table — horizontal scroll */
+      .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .admin-table thead th { padding: 10px 10px; font-size: 11px; }
+      .admin-table tbody td { padding: 9px 10px; font-size: 12px; }
+
+      /* Admin interviewer layout — stack */
+      #admin-tab-interviewers > div:first-child {
+        grid-template-columns: 1fr !important;
+      }
+
+      /* Info row — wrap nicely */
+      .info-row { gap: 12px; padding: 12px 14px; }
+      .info-item .ilabel { font-size: 9px; }
+      .info-item .ival   { font-size: 12px; }
+
+      /* Toggle / decision groups */
+      .toggle-group { flex-wrap: wrap; gap: 8px; }
+      .decision-group { gap: 8px; }
+      .decision-opt label { padding: 8px 14px; font-size: 12px; }
+
+      /* Toast — full width at bottom */
+      .toast { bottom: 16px; right: 12px; left: 12px; max-width: none; font-size: 13px; padding: 12px 16px; }
+
+      /* Q card */
+      .q-english { font-size: 16px; }
+      .q-tamil   { font-size: 13px; }
+
+      /* Progress */
+      .progress-meta span { font-size: 12px; }
+    }
+
+    /* ── Mobile (≤480px) ── */
+    @media (max-width: 480px) {
+
+      /* Nav — hide logo text on very small screens */
+      .logo-text .org { display: none; }
+      .logo-text .title { font-size: 12px; }
+      .nav-right { gap: 6px; }
+
+      /* Cards */
+      .card { padding: 16px 12px; }
+
+      /* Score selector — 3 up, equal width */
+      .score-options { gap: 8px; }
+      .score-option label { width: calc(33% - 6px); height: 76px; }
+      .score-option label .score-val { font-size: 22px; }
+
+      /* Score breakdown — 8 cols squeezed */
+      .score-breakdown { grid-template-columns: repeat(8, 1fr); gap: 4px; }
+      .score-cell { padding: 5px 2px; }
+      .score-cell .qlabel { font-size: 8px; }
+      .score-cell .qval  { font-size: 12px; }
+
+      /* Admin stats — 2 col */
       .admin-stats { grid-template-columns: 1fr 1fr; }
-      .score-options { gap: 10px; }
-      .score-option label { width: 78px; height: 72px; }
+
+      /* Role cards — smaller */
+      .role-card { padding: 18px 14px; }
+      .role-icon { width: 48px; height: 48px; font-size: 20px; }
+      .role-name { font-size: 15px; }
+      .role-desc { font-size: 12px; }
+
+      /* Buttons stacked */
+      .btn-row { flex-direction: column; gap: 8px; }
+      .btn-row .btn { width: 100%; }
+
+      /* Decision labels */
+      .decision-opt label { padding: 8px 10px; font-size: 11px; }
+
+      /* Toast */
+      .toast { font-size: 12px; padding: 10px 14px; }
     }
-    @media (max-width: 400px) {
-      .admin-stats { grid-template-columns: 1fr; }
+
+    /* ── Very small (≤360px) ── */
+    @media (max-width: 360px) {
+      .logo-img { width: 34px; height: 34px; }
+      .logo-text { display: none; }
+      .admin-stats { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .score-option label { height: 68px; }
+      .score-option label .score-val { font-size: 20px; }
     }
+
   </style>
 </head>
 <body>
