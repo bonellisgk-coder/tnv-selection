@@ -816,12 +816,8 @@
             <option>District Committee Member</option>
             <option>Additional District Coordinator</option>
             <option>District Coordinator</option>
-            <option>State Level Potential</option>
-            <option>Training &amp; Capacity Building Lead</option>
-            <option>Communications Coordinator</option>
-            <option>Youth Wing Coordinator</option>
-            <option>Community Outreach Lead</option>
-            <option>Special Project Coordinator</option>
+            <option>State Committee Member</option>
+            <option>Department Manager</option>
           </select>
         </div>
         <div class="form-group">
@@ -998,12 +994,8 @@
           <option>District Committee Member</option>
           <option>Additional District Coordinator</option>
           <option>District Coordinator</option>
-          <option>State Level Potential</option>
-          <option>Training &amp; Capacity Building Lead</option>
-          <option>Communications Coordinator</option>
-          <option>Youth Wing Coordinator</option>
-          <option>Community Outreach Lead</option>
-          <option>Special Project Coordinator</option>
+          <option>State Committee Member</option>
+          <option>Department Manager</option>
         </select>
       </div>
 
@@ -1540,7 +1532,7 @@ async function startAdminEdit(asmntId, candId) {
             <input type="radio" name="edit-qscore-${i}" value="0" ${scoreVal === 0 ? 'checked' : ''} /> 0 (Inadequate)
           </label>
           <label style="display:inline-flex; align-items:center; gap:6px; font-size:12px; cursor:pointer;">
-            <input type="radio" name="edit-qscore-${i}" value="0.5" ${scoreVal === 0.5 ? 'checked' : ''} /> ½ (Partial)
+            <input type="radio" name="edit-qscore-${i}" value="0.5" ${scoreVal === 0.5 ? 'checked' : ''} /> 0.5 (Partial)
           </label>
           <label style="display:inline-flex; align-items:center; gap:6px; font-size:12px; cursor:pointer;">
             <input type="radio" name="edit-qscore-${i}" value="1" ${scoreVal === 1 ? 'checked' : ''} /> 1 (Clear)
@@ -1705,7 +1697,7 @@ function renderQuestion(idx) {
       </div>
       <div class="score-option shalf">
         <input type="radio" name="sq" id="shq" value="0.5" ${cur===0.5?'checked':''} onchange="setScore(${idx},0.5)" />
-        <label for="shq"><div class="score-val">½</div><div class="score-desc">Partial /<br>Acceptable</div></label>
+        <label for="shq"><div class="score-val">0.5</div><div class="score-desc">Partial /<br>Acceptable</div></label>
       </div>
       <div class="score-option s1">
         <input type="radio" name="sq" id="s1q" value="1" ${cur===1?'checked':''} onchange="setScore(${idx},1)" />
@@ -1772,7 +1764,7 @@ function showResults() {
   let bd = '';
   state.scores.forEach((s,i) => {
     const cl = s===1 ? 'v1' : s===0.5 ? 'v05' : s===0 ? 'v0' : 'vna';
-    const dv = s===null ? '—' : s===0.5 ? '½' : s;
+    const dv = s===null ? '—' : s===0.5 ? '0.5' : s;
     bd += `<div class="score-cell ${cl}"><div class="qlabel">Q${i+1}</div><div class="qval">${dv}</div></div>`;
   });
   document.getElementById('score-breakdown').innerHTML = bd;
