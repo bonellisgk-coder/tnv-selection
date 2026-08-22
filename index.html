@@ -1432,6 +1432,22 @@ async function deleteInterviewerByAdmin(id) {
   } catch(e) { showToast('❌ Error deleting.', '#dc2626'); console.error(e); }
 }
 
+async function toggleInterviewerAccess(id, currentStatus) {
+  try {
+    const { error } = await db
+      .from('interviewers')
+      .update({ is_active: !currentStatus })
+      .eq('id', id);
+    if (error) throw error;
+    showToast(`✅ Access status updated.`);
+    renderRegisteredInterviewers();
+    renderInterviewersTable();
+  } catch(e) {
+    showToast('❌ Error updating status: ' + (e.message || e), '#dc2626');
+    console.error(e);
+  }
+}
+
 async function renderRegisteredInterviewers() {
   const list = await loadRegisteredInterviewers();
   const tbody = document.getElementById('registered-iv-table-body');
@@ -1443,7 +1459,12 @@ async function renderRegisteredInterviewers() {
       <td>${esc(iv.phone||'—')}</td>
       <td><span style="color:${iv.is_active?'#166534':'#991b1b'};font-weight:700;">${iv.is_active?'✅ Active':'🚫 Revoked'}</span></td>
       <td>
-        <button class="btn-sm-logout" style="background:#fee2e2; color:#dc2626; border-color:#fecaca; padding:4px 8px; font-size:11px;" onclick="deleteInterviewerByAdmin(${iv.id})">Delete</button>
+        <div style="display:flex; gap:6px;">
+          <button class="btn-sm-logout" style="background:${iv.is_active?'#fffbeb':'#f0fdf4'}; color:${iv.is_active?'#d97706':'#16a34a'}; border-color:${iv.is_active?'#fde68a':'#bbf7d0'}; padding:4px 8px; font-size:11px;" onclick="toggleInterviewerAccess(${iv.id}, ${iv.is_active})">
+            ${iv.is_active ? 'Revoke' : 'Grant'}
+          </button>
+          <button class="btn-sm-logout" style="background:#fee2e2; color:#dc2626; border-color:#fecaca; padding:4px 8px; font-size:11px;" onclick="deleteInterviewerByAdmin(${iv.id})">Delete</button>
+        </div>
       </td>
     </tr>
   `).join('');
