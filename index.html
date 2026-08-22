@@ -1426,10 +1426,13 @@ async function deleteInterviewerByAdmin(id) {
   if (!confirm('Delete this interviewer? They will no longer be able to log in.')) return;
   try {
     await deleteInterviewerFromSupabase(id);
-    showToast('❌ Interviewer deleted.');
+    showToast('✅ Interviewer deleted successfully.');
     renderRegisteredInterviewers();
     renderInterviewersTable();
-  } catch(e) { showToast('❌ Error deleting.', '#dc2626'); console.error(e); }
+  } catch(e) {
+    showToast('❌ Error deleting: ' + (e.message || JSON.stringify(e)), '#dc2626');
+    console.error(e);
+  }
 }
 
 async function toggleInterviewerAccess(id, currentStatus) {
