@@ -636,9 +636,9 @@
     /* ── Mobile (≤480px) ── */
     @media (max-width: 480px) {
 
-      /* Nav — hide logo text on very small screens */
-      .logo-text .org { display: none; }
-      .logo-text .title { font-size: 12px; }
+      /* Nav — keep org name visible, just smaller */
+      .logo-text .org { font-size: 8px; letter-spacing: 0.8px; }
+      .logo-text .title { font-size: 11px; }
       .nav-right { gap: 6px; }
 
       /* Cards */
@@ -677,8 +677,9 @@
 
     /* ── Very small (≤360px) ── */
     @media (max-width: 360px) {
-      .logo-img { width: 34px; height: 34px; }
-      .logo-text { display: none; }
+      .logo-img { width: 32px; height: 32px; }
+      .logo-text .org { font-size: 7px; letter-spacing: 0.5px; }
+      .logo-text .title { font-size: 10px; }
       .admin-stats { grid-template-columns: 1fr 1fr; gap: 8px; }
       .score-option label { height: 68px; }
       .score-option label .score-val { font-size: 20px; }
