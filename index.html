@@ -1327,6 +1327,9 @@ function submitAdminLogin() {
     return;
   }
 
+  // Save session so page refresh restores admin
+  sessionStorage.setItem('tnv_role', 'admin');
+
   // Update nav
   document.getElementById('nav-right').innerHTML = `
     <span class="nav-badge gold">🛡️ Admin Portal</span>
@@ -1511,6 +1514,10 @@ async function submitInterviewerLogin() {
   const iv = ivs[0];
 
   state.interviewer = { id: iv.id, name: iv.full_name, email: iv.email||'', phone: iv.phone||'', regNo: iv.reg_no };
+
+  // Save session so page refresh restores interviewer
+  sessionStorage.setItem('tnv_role', 'interviewer');
+  sessionStorage.setItem('tnv_interviewer', JSON.stringify(state.interviewer));
 
   document.getElementById('nav-right').innerHTML = `
     <span class="nav-badge green"><span class="session-dot"></span>${esc(iv.full_name)} (${esc(iv.reg_no)})</span>
@@ -2090,6 +2097,10 @@ function updateDoneCount() {
 
 // ─── LOGOUT ───
 function logout() {
+  // Clear persisted session
+  sessionStorage.removeItem('tnv_role');
+  sessionStorage.removeItem('tnv_interviewer');
+
   state.role            = '';
   state.interviewer     = { name:'', email:'', phone:'', regNo:'', id: null };
   state.sessionRecords  = [];
@@ -2117,6 +2128,61 @@ function esc(str) {
   if (!str) return '';
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+// ─── SESSION RESTORE ON PAGE LOAD ───
+// Restores admin/interviewer session after a page refresh
+async function restoreSession() {
+  const role = sessionStorage.getItem('tnv_role');
+  if (!role) return; // No saved session — stay on role screen
+
+  if (role === 'admin') {
+    state.role = 'admin';
+    document.getElementById('nav-right').innerHTML = `
+      <span class="nav-badge gold">🛡️ Admin Portal</span>
+      <button class="btn-sm-logout" onclick="logout()">Logout</button>`;
+    await refreshAdmin();
+    showScreen('screen-admin');
+
+  } else if (role === 'interviewer') {
+    const saved = sessionStorage.getItem('tnv_interviewer');
+    if (!saved) return;
+    const iv = JSON.parse(saved);
+
+    // Verify the interviewer is still active in Supabase
+    const { data: ivCheck } = await db
+      .from('interviewers')
+      .select('id, full_name, reg_no, email, phone, is_active')
+      .eq('id', iv.id)
+      .single();
+
+    if (!ivCheck || !ivCheck.is_active) {
+      // Access revoked — clear session and stay on login
+      sessionStorage.removeItem('tnv_role');
+      sessionStorage.removeItem('tnv_interviewer');
+      showToast('⚠ Your access has been revoked. Please contact Admin.', '#dc2626');
+      return;
+    }
+
+    state.role = 'interviewer';
+    state.interviewer = { id: ivCheck.id, name: ivCheck.full_name, email: ivCheck.email||'', phone: ivCheck.phone||'', regNo: ivCheck.reg_no };
+
+    document.getElementById('nav-right').innerHTML = `
+      <span class="nav-badge green"><span class="session-dot"></span>${esc(ivCheck.full_name)} (${esc(ivCheck.reg_no)})</span>
+      <button class="btn-sm-logout" onclick="logout()">End Session</button>`;
+
+    document.getElementById('interviewer-info-bar').innerHTML = `
+      <div class="info-item"><div class="ilabel">Interviewer</div><div class="ival">${esc(ivCheck.full_name)} (${esc(ivCheck.reg_no)})</div></div>
+      <div class="info-item"><div class="ilabel">Email</div><div class="ival">${esc(ivCheck.email||'—')}</div></div>
+      <div class="info-item"><div class="ilabel">Mobile</div><div class="ival">${esc(ivCheck.phone||'—')}</div></div>
+      <div class="info-item"><div class="ilabel">Done Today</div><div class="ival" id="done-count">0</div></div>`;
+
+    document.getElementById('cd-date').value = new Date().toISOString().split('T')[0];
+    showScreen('screen-candidate');
+  }
+}
+
+// Run session restore when page loads
+document.addEventListener('DOMContentLoaded', restoreSession);
 </script>
 </body>
 </html>
