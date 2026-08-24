@@ -1827,6 +1827,11 @@ function submitCandidate() {
   state.currentQ   = 0;
   state.lastSaved  = false;
 
+  // Persist candidate details and fresh scores so a page refresh can restore them
+  sessionStorage.setItem('tnv_candidate', JSON.stringify(state.candidate));
+  sessionStorage.setItem('tnv_scores',    JSON.stringify(state.scores));
+  sessionStorage.setItem('tnv_currentQ',  '0');
+
   renderQuestion(0);
   showScreen('screen-interview');
 }
@@ -1873,7 +1878,12 @@ function renderQuestion(idx) {
 // Hint panel is shown by default; toggleHint is no longer needed.
 
 // ─── RATING SELECTION ───
-function setScore(idx, val) { state.scores[idx] = val; updateLiveScore(); }
+function setScore(idx, val) {
+  state.scores[idx] = val;
+  updateLiveScore();
+  // Auto-save scores so they survive page refresh
+  sessionStorage.setItem('tnv_scores', JSON.stringify(state.scores));
+}
 
 function updateLiveScore() {
   const ans   = state.scores.filter(s => s !== null);
@@ -1891,6 +1901,8 @@ function qNav(dir) {
   const next = idx + dir;
   if (next < 0)  { showScreen('screen-candidate'); return; }
   if (next > 15) { showResults(); return; }
+  // Auto-save current question index so page refresh lands on the right question
+  sessionStorage.setItem('tnv_currentQ', next);
   renderQuestion(next);
 }
 
@@ -2097,6 +2109,11 @@ function nextCandidate() {
   state.scores    = Array(16).fill(null);
   state.currentQ  = 0;
 
+  // Clear in-progress interview session so new candidate starts fresh
+  sessionStorage.removeItem('tnv_candidate');
+  sessionStorage.removeItem('tnv_scores');
+  sessionStorage.removeItem('tnv_currentQ');
+
   updateDoneCount();
   showScreen('screen-candidate');
   showToast('📋 Ready for next candidate.');
@@ -2109,9 +2126,12 @@ function updateDoneCount() {
 
 // ─── LOGOUT ───
 function logout() {
-  // Clear persisted session
+  // Clear all persisted session data (login + in-progress interview)
   sessionStorage.removeItem('tnv_role');
   sessionStorage.removeItem('tnv_interviewer');
+  sessionStorage.removeItem('tnv_candidate');
+  sessionStorage.removeItem('tnv_scores');
+  sessionStorage.removeItem('tnv_currentQ');
 
   state.role            = '';
   state.interviewer     = { name:'', email:'', phone:'', regNo:'', id: null };
@@ -2171,6 +2191,9 @@ async function restoreSession() {
       // Access revoked — clear session and stay on login
       sessionStorage.removeItem('tnv_role');
       sessionStorage.removeItem('tnv_interviewer');
+      sessionStorage.removeItem('tnv_candidate');
+      sessionStorage.removeItem('tnv_scores');
+      sessionStorage.removeItem('tnv_currentQ');
       showToast('⚠ Your access has been revoked. Please contact Admin.', '#dc2626');
       return;
     }
@@ -2188,8 +2211,22 @@ async function restoreSession() {
       <div class="info-item"><div class="ilabel">Mobile</div><div class="ival">${esc(ivCheck.phone||'—')}</div></div>
       <div class="info-item"><div class="ilabel">Done Today</div><div class="ival" id="done-count">0</div></div>`;
 
-    document.getElementById('cd-date').value = new Date().toISOString().split('T')[0];
-    showScreen('screen-candidate');
+    // ── Restore in-progress interview if one was saved ──
+    const savedCandidate = sessionStorage.getItem('tnv_candidate');
+    const savedScores    = sessionStorage.getItem('tnv_scores');
+    const savedQ         = sessionStorage.getItem('tnv_currentQ');
+
+    if (savedCandidate && savedScores) {
+      state.candidate = JSON.parse(savedCandidate);
+      state.scores    = JSON.parse(savedScores);
+      state.currentQ  = parseInt(savedQ) || 0;
+      renderQuestion(state.currentQ);
+      showScreen('screen-interview');
+      showToast('↩ Resumed where you left off — Question ' + (state.currentQ + 1));
+    } else {
+      document.getElementById('cd-date').value = new Date().toISOString().split('T')[0];
+      showScreen('screen-candidate');
+    }
   }
 }
 
