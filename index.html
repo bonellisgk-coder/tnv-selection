@@ -323,20 +323,17 @@
     }
 
     .hint-toggle {
-      display: flex; align-items: center; gap: 7px; cursor: pointer;
+      display: flex; align-items: center; gap: 7px;
       font-size: 12px; color: var(--green); font-weight: 700;
       letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px;
       user-select: none; width: fit-content;
     }
-    .hint-toggle .arrow { transition: transform 0.3s; }
-    .hint-toggle.open .arrow { transform: rotate(180deg); }
 
     .hint-panel {
       background: var(--green-bg); border: 1px solid rgba(26,107,26,0.18);
       border-radius: var(--radius-xs); padding: 14px 18px; margin-bottom: 22px;
-      font-size: 13px; color: var(--text-2); line-height: 1.75; display: none;
+      font-size: 13px; color: var(--text-2); line-height: 1.75;
     }
-    .hint-panel.open { display: block; animation: slideIn 0.2s ease both; }
 
     /* ===== SCORE SELECTOR ===== */
     .score-label {
@@ -784,6 +781,7 @@
                 <th>Date</th>
                 <th>Candidate Name</th>
                 <th>Mobile</th>
+                <th>Email</th>
                 <th>District</th>
                 <th>Constituency</th>
                 <th>Current Role</th>
@@ -888,6 +886,10 @@
         <div class="form-group">
           <label for="edit-cd-mobile">Mobile Number *</label>
           <input type="tel" id="edit-cd-mobile" maxlength="10" />
+        </div>
+        <div class="form-group">
+          <label for="edit-cd-email">Email Address</label>
+          <input type="email" id="edit-cd-email" />
         </div>
         <div class="form-group">
           <label for="edit-cd-date">Interview Date *</label>
@@ -1031,6 +1033,11 @@
           <label for="cd-mobile">Mobile Number *</label>
           <input type="tel" id="cd-mobile" placeholder="10-digit mobile" maxlength="10" />
           <span class="error-msg" id="err-cd-mobile">Enter a valid 10-digit number</span>
+        </div>
+        <div class="form-group">
+          <label for="cd-email">Email Address</label>
+          <input type="email" id="cd-email" placeholder="candidate@email.com" />
+          <span class="error-msg" id="err-cd-email">Enter a valid email address</span>
         </div>
         <div class="form-group">
           <label for="cd-date">Interview Date *</label>
@@ -1249,6 +1256,7 @@ async function loadAllRecords() {
     'Interviewer Mobile':         a.interviewers?.phone || '',
     'Candidate Name':             a.candidates?.candidate_name || '',
     'Candidate Mobile':           a.candidates?.candidate_mobile || '',
+    'Candidate Email':            a.candidates?.candidate_email || '',
     'District':                   a.candidates?.district || '',
     'Assembly Constituency':      a.candidates?.assembly_constituency || '',
     'Panchayat / Area':           a.candidates?.panchayat_area || '',
@@ -1413,6 +1421,7 @@ function renderAdminTable(records) {
       <td>${esc(r['Interview Date'] || '')}</td>
       <td style="font-weight:600;">${esc(r['Candidate Name'] || '')}</td>
       <td>${esc(r['Candidate Mobile'] || '')}</td>
+      <td style="font-size:12px;">${esc(r['Candidate Email'] || '—')}</td>
       <td>${esc(r['District'] || '')}</td>
       <td>${esc(r['Assembly Constituency'] || '')}</td>
       <td style="font-size:12px;color:var(--text-muted);">${esc(r['Current TNV Role'] || '')}</td>
@@ -1645,6 +1654,7 @@ async function startAdminEdit(asmntId, candId) {
   const r = {
     'Candidate Name':        a.candidates?.candidate_name || '',
     'Candidate Mobile':      a.candidates?.candidate_mobile || '',
+    'Candidate Email':       a.candidates?.candidate_email || '',
     'Interview Date':        a.candidates?.interview_date || '',
     'District':              a.candidates?.district || '',
     'Assembly Constituency': a.candidates?.assembly_constituency || '',
@@ -1662,6 +1672,7 @@ async function startAdminEdit(asmntId, candId) {
 
   document.getElementById('edit-cd-name').value = r['Candidate Name'] || '';
   document.getElementById('edit-cd-mobile').value = r['Candidate Mobile'] || '';
+  document.getElementById('edit-cd-email').value = r['Candidate Email'] || '';
   document.getElementById('edit-cd-date').value = r['Interview Date'] || '';
   document.getElementById('edit-cd-district').value = r['District'] || '';
   document.getElementById('edit-cd-constituency').value = r['Assembly Constituency'] || '';
@@ -1710,6 +1721,7 @@ async function saveAdminEdit() {
 
   const name         = document.getElementById('edit-cd-name').value.trim();
   const mobile       = document.getElementById('edit-cd-mobile').value.trim();
+  const email        = document.getElementById('edit-cd-email').value.trim();
   const date         = document.getElementById('edit-cd-date').value;
   const district     = document.getElementById('edit-cd-district').value;
   const constituency = document.getElementById('edit-cd-constituency').value.trim();
@@ -1737,6 +1749,7 @@ async function saveAdminEdit() {
     await db.from('candidates').update({
       candidate_name:        name,
       candidate_mobile:      mobile,
+      candidate_email:       email || null,
       interview_date:        date,
       district,
       assembly_constituency: constituency,
@@ -1790,16 +1803,18 @@ async function deleteCandidateByAdmin(asmntId, candId) {
 function submitCandidate() {
   const name         = document.getElementById('cd-name').value.trim();
   const mobile       = document.getElementById('cd-mobile').value.trim();
+  const email        = document.getElementById('cd-email').value.trim();
   const date         = document.getElementById('cd-date').value;
   const district     = document.getElementById('cd-district').value;
   const constituency = document.getElementById('cd-constituency').value.trim();
   const panchayat    = document.getElementById('cd-panchayat').value.trim();
   const role         = document.getElementById('cd-role').value;
 
-  clearErrors(['err-cd-name','err-cd-mobile','err-cd-date','err-cd-district','err-cd-constituency','err-cd-panchayat','err-cd-role']);
+  clearErrors(['err-cd-name','err-cd-mobile','err-cd-email','err-cd-date','err-cd-district','err-cd-constituency','err-cd-panchayat','err-cd-role']);
   let ok = true;
   if (!name)                 { showErr('err-cd-name',          true); ok = false; }
   if (!validatePhone(mobile)) { showErr('err-cd-mobile',       true); ok = false; }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('err-cd-email', true); ok = false; }
   if (!date)                 { showErr('err-cd-date',          true); ok = false; }
   if (!district)             { showErr('err-cd-district',      true); ok = false; }
   if (!constituency)         { showErr('err-cd-constituency',  true); ok = false; }
@@ -1807,7 +1822,7 @@ function submitCandidate() {
   if (!role)                 { showErr('err-cd-role',          true); ok = false; }
   if (!ok) return;
 
-  state.candidate  = { name, mobile, date, district, constituency, panchayat, role };
+  state.candidate  = { name, mobile, email, date, district, constituency, panchayat, role };
   state.scores     = Array(16).fill(null);
   state.currentQ   = 0;
   state.lastSaved  = false;
@@ -1834,8 +1849,8 @@ function renderQuestion(idx) {
     <div class="q-badge"><div class="num">${idx+1}</div>Question ${idx+1} of 16</div>
     <div class="q-english">${esc(q.en)}</div>
     <div class="q-tamil">${esc(q.ta)}</div>
-    <div class="hint-toggle" id="htg-${idx}" onclick="toggleHint(${idx})">
-      <span>👁 What to Look For</span><span class="arrow">▼</span>
+    <div class="hint-toggle" id="htg-${idx}">
+      <span>👁 What to Look For</span>
     </div>
     <div class="hint-panel" id="hp-${idx}">${esc(q.hint).replace(/\n/g,'<br>')}</div>
     <div class="score-label">Award Score for This Answer</div>
@@ -1855,12 +1870,7 @@ function renderQuestion(idx) {
     </div>`;
 }
 
-function toggleHint(idx) {
-  const p = document.getElementById(`hp-${idx}`);
-  const t = document.getElementById(`htg-${idx}`);
-  const o = p.classList.toggle('open');
-  t.classList.toggle('open', o);
-}
+// Hint panel is shown by default; toggleHint is no longer needed.
 
 // ─── RATING SELECTION ───
 function setScore(idx, val) { state.scores[idx] = val; updateLiveScore(); }
@@ -1954,6 +1964,7 @@ function buildRecord() {
     'Interviewer Mobile':      state.interviewer.phone,
     'Candidate Name':          state.candidate.name,
     'Candidate Mobile':        state.candidate.mobile,
+    'Candidate Email':         state.candidate.email || '',
     'District':                state.candidate.district,
     'Assembly Constituency':   state.candidate.constituency,
     'Panchayat / Area':        state.candidate.panchayat,
@@ -1996,6 +2007,7 @@ async function saveAndExport() {
         .insert({
           candidate_name:        state.candidate.name,
           candidate_mobile:      state.candidate.mobile,
+          candidate_email:       state.candidate.email || null,
           interview_date:        state.candidate.date,
           district:              state.candidate.district,
           assembly_constituency: state.candidate.constituency,
@@ -2075,13 +2087,13 @@ function nextCandidate() {
   state.lastCandidateId  = null;
   state.lastAssessmentId = null;
 
-  ['cd-name','cd-mobile','cd-constituency','cd-panchayat'].forEach(id =>
+  ['cd-name','cd-mobile','cd-email','cd-constituency','cd-panchayat'].forEach(id =>
     (document.getElementById(id).value = ''));
   document.getElementById('cd-district').value = '';
   document.getElementById('cd-role').value     = '';
   document.getElementById('cd-date').value     = new Date().toISOString().split('T')[0];
 
-  state.candidate = { name:'', mobile:'', date:'', district:'', constituency:'', panchayat:'', role:'' };
+  state.candidate = { name:'', mobile:'', email:'', date:'', district:'', constituency:'', panchayat:'', role:'' };
   state.scores    = Array(16).fill(null);
   state.currentQ  = 0;
 
