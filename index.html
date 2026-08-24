@@ -32,7 +32,7 @@
       --text-muted:   #6b7280;
       --text-dim:     #9ca3af;
       --score-0:      #dc2626;
-      --score-half:   #d97706;
+      --score-half:   #ca8a04;
       --score-1:      #16a34a;
       --radius:       16px;
       --radius-sm:    10px;
@@ -354,12 +354,41 @@
     .score-option label .score-desc { font-size: 10px; color: var(--text-dim); letter-spacing: 0.3px; text-align: center; }
     .score-option label:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
 
-    .score-option.s0 input:checked ~ label { border-color: var(--score-0); background: #fff5f5; box-shadow: 0 0 0 3px rgba(220,38,38,0.1); }
-    .score-option.s0 input:checked ~ label .score-val { color: var(--score-0); }
-    .score-option.shalf input:checked ~ label { border-color: var(--score-half); background: #fffbf0; box-shadow: 0 0 0 3px rgba(217,119,6,0.1); }
-    .score-option.shalf input:checked ~ label .score-val { color: var(--score-half); }
-    .score-option.s1 input:checked ~ label { border-color: var(--score-1); background: #f0fdf4; box-shadow: 0 0 0 3px rgba(22,163,74,0.12); }
-    .score-option.s1 input:checked ~ label .score-val { color: var(--score-1); }
+    /* Score 0 — Red tint always visible */
+    .score-option.s0 label {
+      border-color: #fca5a5; background: #fff5f5;
+    }
+    .score-option.s0 label .score-val { color: #ef4444; }
+    .score-option.s0 label .score-desc { color: #f87171; }
+    .score-option.s0 input:checked ~ label {
+      border-color: #dc2626; background: #fee2e2;
+      box-shadow: 0 0 0 3px rgba(220,38,38,0.2);
+    }
+    .score-option.s0 input:checked ~ label .score-val { color: #dc2626; }
+
+    /* Score 0.5 — Yellow tint always visible */
+    .score-option.shalf label {
+      border-color: #fde047; background: #fefce8;
+    }
+    .score-option.shalf label .score-val { color: #ca8a04; }
+    .score-option.shalf label .score-desc { color: #a16207; }
+    .score-option.shalf input:checked ~ label {
+      border-color: #ca8a04; background: #fef9c3;
+      box-shadow: 0 0 0 3px rgba(202,138,4,0.2);
+    }
+    .score-option.shalf input:checked ~ label .score-val { color: #ca8a04; }
+
+    /* Score 1 — Green tint always visible */
+    .score-option.s1 label {
+      border-color: #86efac; background: #f0fdf4;
+    }
+    .score-option.s1 label .score-val { color: #22c55e; }
+    .score-option.s1 label .score-desc { color: #16a34a; }
+    .score-option.s1 input:checked ~ label {
+      border-color: #16a34a; background: #dcfce7;
+      box-shadow: 0 0 0 3px rgba(22,163,74,0.2);
+    }
+    .score-option.s1 input:checked ~ label .score-val { color: #16a34a; }
 
     /* ===== RESULTS ===== */
     .result-hero { text-align: center; padding: 28px 0 24px; }
